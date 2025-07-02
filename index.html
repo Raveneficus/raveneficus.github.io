@@ -272,10 +272,10 @@
                 charts.timeline = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['Ignition', 'Launch', 'Course Correction', 'E-WAR Encounter', 'Final Burn', 'Impact'],
+                        labels: ['Ignition', 'Launch', 'Course Correction', 'E-WAR Encounter', 'Final Burn', 'Impact', 'Attmpted activation'],
                         datasets: [{
                             label: 'Intellect-9 Velocity',
-                            data: [0, 50, 55, 70, 100, 0],
+                            data: [0, 50, 55, 70, 100, 0, 0],
                             borderColor: '#818cf8',
                             backgroundColor: 'rgba(129, 140, 248, 0.2)',
                             fill: true,
@@ -285,7 +285,7 @@
                         },
                         {
                             label: 'Cherry Bio-Integrity',
-                            data: [100, 100, 100, 100, 100, 25],
+                            data: [100, 100, 100, 100, 100, 100, 25],
                              borderColor: '#f87171',
                             backgroundColor: 'rgba(248, 113, 113, 0.2)',
                             fill: true,
