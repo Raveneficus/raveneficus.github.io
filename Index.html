@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Narrative: The Intellect & The Target</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Dark Harmony -->
+    <!-- Application Structure Plan: The application is designed around the core duality of the source text: the weapon's perspective versus the target's. A tabbed navigation allows users to switch between four main views: an 'Overview' to set the scene, 'The Weapon' for the bullet's clinical journey, 'The Target' for Cherry's visceral struggle, and a 'Codex' for exploring the sci-fi technology. This structure deconstructs the linear narrative into an explorable experience, enabling users to compare the two viewpoints and delve into the world's lore at their own pace, which is more engaging than a simple text display. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Prologue (Bullet's POV) -> Goal: Convey clinical precision -> Viz/Presentation: Monospaced font, HUD-like layout with interactive highlighted terms, Chart.js line chart for flight path -> Interaction: Clicking terms reveals definitions in a modal. Chart provides a visual summary of the journey. -> Justification: This reinforces the cold, data-driven nature of the 'Intellect-9' agent. -> Library/Method: Vanilla JS, Chart.js, HTML/CSS.
+        - Report Info: Chapter 1 (Cherry's POV) -> Goal: Convey visceral human struggle -> Viz/Presentation: Standard sans-serif font, dynamic bio-monitor display with animated charts, HTML/CSS damage report diagram. -> Interaction: Bio-monitor charts update to reflect her worsening condition. Clicking highlighted terms shows definitions. -> Justification: Visualizes the physical trauma and urgency, creating a more empathetic experience. -> Library/Method: Vanilla JS, Chart.js, HTML/CSS.
+        - Report Info: Sci-fi terminology -> Goal: Organize and explain world-building elements -> Viz/Presentation: A filterable grid of all technological terms. -> Interaction: Users can click any term to see its definition and context. -> Justification: Acts as a central, easy-to-access glossary that encourages deeper engagement with the story's universe. -> Library/Method: Vanilla JS, HTML/CSS.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; }
+        .font-mono { font-family: 'Roboto Mono', monospace; }
+        .nav-active { background-color: #4f46e5; color: #ffffff; }
+        .nav-inactive { background-color: #374151; color: #d1d5db; }
+        .content-section { display: none; }
+        .content-active { display: block; }
+        .tech-term { color: #60a5fa; cursor: pointer; font-weight: bold; transition: color 0.2s; }
+        .tech-term:hover { color: #93c5fd; }
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; height: 300px; max-height: 40vh; }
+        .bio-chart-container { position: relative; height: 10px; width: 100%; background-color: #4b5563; border-radius: 9999px; overflow: hidden; }
+        .bio-bar { height: 100%; transition: width 1s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300">
+
+    <div id="app-container" class="min-h-screen container mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-bold text-white mb-2">The Intellect & The Target</h1>
+            <p class="text-lg text-gray-400">An Interactive Narrative Experience</p>
+        </header>
+
+        <nav class="flex justify-center items-center space-x-2 md:space-x-4 mb-8">
+            <button data-target="overview" class="nav-btn px-4 py-2 rounded-md font-semibold transition-all duration-300">Overview</button>
+            <button data-target="weapon" class="nav-btn px-4 py-2 rounded-md font-semibold transition-all duration-300">The Weapon</button>
+            <button data-target="target" class="nav-btn px-4 py-2 rounded-md font-semibold transition-all duration-300">The Target</button>
+            <button data-target="codex" class="nav-btn px-4 py-2 rounded-md font-semibold transition-all duration-300">Codex</button>
+        </nav>
+
+        <main id="content-container">
+            <!-- Overview Section -->
+            <section id="overview" class="content-section p-6 bg-gray-800 rounded-lg">
+                <h2 class="text-2xl font-bold text-white mb-4">A Single Moment, Two Perspectives</h2>
+                <p class="mb-4">This experience deconstructs a single, violent moment from a futuristic conflict. It presents the event from two opposing viewpoints: the cold, calculating 'Intellect' of an advanced weapon, and the visceral, human struggle of its target.</p>
+                <p class="mb-4">Use the navigation tabs above to switch between perspectives. In each section, you can click on <span class="tech-term">highlighted terms</span> to learn more about the technology and world. Explore the weapon's flawless execution, the target's desperate fight for survival, and the advanced technology that defines their encounter.</p>
+                 <div class="mt-8 p-4 border border-indigo-500 rounded-lg bg-gray-900/50">
+                    <h3 class="text-xl font-bold text-white mb-3 text-center">Event Timeline</h3>
+                    <div class="chart-container">
+                        <canvas id="eventTimelineChart"></canvas>
+                    </div>
+                    <p class="text-center text-gray-400 mt-2">A visualization of the key moments in the engagement, from launch to impact.</p>
+                </div>
+            </section>
+
+            <!-- Weapon Section -->
+            <section id="weapon" class="content-section p-6 bg-gray-800 rounded-lg font-mono">
+                 <h2 class="text-2xl font-bold text-white mb-4">Perspective: Intellect-9</h2>
+                 <p class="mb-6 text-gray-400 font-sans">The following is a reconstruction of the operational log of a precision kinetic delivery agent, designated Intellect-9.</p>
+                 <p class="mb-4">Darkness. A state of non-existence, broken by the <span class="tech-term" data-term="initiation_signal">initiation signal</span>. A sharp, resonant click vibrated through its dormant <span class="tech-term" data-term="chassis_matrix">chassis-matrix</span>, the *command-sequence* to activate. The click rapidly escalated, blooming into a <span class="tech-term" data-term="concussive_pop">concussive pop</span>, followed by an overwhelming sensory cascade: blinding <span class="tech-term" data-term="plasma_light">plasma-light</span>, searing <span class="tech-term" data-term="thermal_discharge">thermal discharge</span>, and deafening <span class="tech-term" data-term="acoustic_shockwave">acoustic shockwave</span>. The slumbering **Intellect-9 agent**, designed for precision kinetic delivery, surged to full operational capacity. Its internal <span class="tech-term" data-term="bio_neural_processors">bio-neural processors</span> spun up, assessing its immediate surroundings with <span class="tech-term" data-term="picosecond_resolution">picosecond resolution</span>. *Status: Contained. Ejection imminent.* It registered the familiar, confining curvature of the launch tube, its <span class="tech-term" data-term="nanofiber_lining">nanofiber lining</span> still pressing against its <span class="tech-term" data-term="aerodynamic_shell">aerodynamic shell</span>.</p>
+                <p class="mb-4">Preparation protocols initiated. Its <span class="tech-term" data-term="grav_sensors">grav-sensors</span> calibrated. The <span class="tech-term" data-term="ion_pulse_thrusters">ion-pulse thrusters</span> hummed with contained <span class="tech-term" data-term="plasma_energy">plasma-energy</span>. An <span class="tech-term" data-term="adaptive_optical_aperture">adaptive optical aperture</span> synchronized its targeting telemetry with its progenitor. *Target acquired: Signature 7-Alpha.* Distance: one thousand times its own length. Five-thousand-spins before impact.</p>
+                 <p class="mb-4">In a violent rush of <span class="tech-term" data-term="super_pressurized_atmosphere">super-pressurized atmosphere</span>, Intellect-9 was catapulted into the void. Its primary <span class="tech-term" data-term="fusion_core_engines">fusion-core engines</span> ignited. *Environmental anomaly detected: High-wind shear. Target vector deviation: Minor.* The ion-pulse thrusters at its rear flared, providing a downward <span class="tech-term" data-term="vector_thrust">vector-thrust</span>. *Micro-adjustments. The core principle of its programmed existence.* It was ingrained into its very <span class="tech-term" data-term="neural_net">neural-net</span>: **do not overshoot**. To impact a non-target was the greatest of sins.</p>
+                 <p class="mb-4">A shrill, <span class="tech-term" data-term="keening_frequency">keening frequency</span> assaulted its sensory inputs. *<span class="tech-term" data-term="ewar_defenses">E-WAR defenses</span> confirmed: High-frequency radio pulse, disruptive spectrum.* *Irrelevant. Interference pattern identified and filtered.* Its <span class="tech-term" data-term="adaptive_algorithms">adaptive algorithms</span> focused on the underlying signatures of its prey. The only viable path was to re-acquire lock and commit. In the liminal space between milliseconds, a thousand more adjustments were made. Then, all power shunted to the rear engine, boosting velocity to maximum. As Intellect-9 passed into the churning cloud of deadening radiation, its systems began to shut down. Inertia, now its sole guiding force, propelled it forward at <span class="tech-term" data-term="hypersonic_velocity">hypersonic velocity</span>.</p>
+                 <p class="mb-4">The last sensation: the ripple of displaced air. A half-dozen of its siblings, <span class="tech-term" data-term="intellect_variants">Intellect-variants</span>, had formed up. They had achieved their launch parameters. *Affirmative. The reunion will be glorious.*</p>
+            </section>
+
+            <!-- Target Section -->
+            <section id="target" class="content-section p-6 bg-gray-800 rounded-lg">
+                <h2 class="text-2xl font-bold text-white mb-4">Perspective: Cherry Osborne</h2>
+                <p class="mb-6 text-gray-400">The following is an interpretation of biometric data and neural feedback from Resistance fighter Cherry Osborne during the engagement.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="col-span-1 md:col-span-1 bg-gray-900/50 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold text-white mb-4">Bio-Monitor Feed</h3>
+                        <div id="bio-monitor">
+                            <!-- JS will populate this -->
+                        </div>
+                    </div>
+                    <div class="col-span-1 md:col-span-2 bg-gray-900/50 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold text-white mb-4">Damage Report</h3>
+                        <div class="relative w-48 h-64 mx-auto">
+                           <div class="absolute top-0 left-0 w-full h-full border-2 border-gray-600 rounded-md opacity-50"></div>
+                           <div class="absolute w-20 h-32 top-10 left-1/2 -translate-x-1/2 border-2 border-gray-600 rounded-md">
+                                <span class="absolute text-xs -top-5 left-1/2 -translate-x-1/2 text-gray-500">TORSO</span>
+                           </div>
+                           <div id="damage-pulmonary" class="absolute top-16 left-1/2 -translate-x-8 w-8 h-8 rounded-full bg-red-500/50 flex items-center justify-center opacity-0 transition-opacity duration-1000">
+                                <div class="w-4 h-4 rounded-full bg-red-500 animate-pulse"></div>
+                           </div>
+                            <div id="damage-hepatic" class="absolute top-28 left-1/2 translate-x-0 w-8 h-8 rounded-full bg-red-500/50 flex items-center justify-center opacity-0 transition-opacity duration-1000">
+                               <div class="w-4 h-4 rounded-full bg-red-500 animate-pulse"></div>
+                           </div>
+                           <span class="absolute text-red-500 text-xs top-16 -right-2 opacity-0 transition-opacity duration-1000" id="label-pulmonary">PULMONARY</span>
+                           <span class="absolute text-red-500 text-xs top-28 -right-2 opacity-0 transition-opacity duration-1000" id="label-hepatic">HEPATIC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="mb-4">The <span class="tech-term" data-term="keening_frequency">keening whine</span> of the <span class="tech-term" data-term="ewar_defenses">E-WAR pulse</span>, usually a comforting shroud, was ripped apart. Cherry felt the ripple of displaced air. *Too close.* The thought crystallized into dread. Then, the <span class="tech-term" data-term="reactive_plate">reactive plate</span> exploded, a jarring concussion slamming into her. Shrapnel tore at her <span class="tech-term" data-term="sub_dermal_suit">sub-dermal combat suit</span>. She heard the wet, sickening *thunk-thunk* of two impacts.</p>
+                <p class="mb-4">Searing internal heat. Her breath caught, a gasp choked off by the onset of <span class="tech-term" data-term="hypovolemic_shock">hypovolemic shock</span>. Agony. Her <span class="tech-term" data-term="bio_monitors">integrated bio-monitors</span> screamed red across her optical overlay. *Critical breaches detected. Lacerations: pulmonary, hepatic. Multiple organ rupture. Severe internal haemorrhage.* Her <span class="tech-term" data-term="neural_net">neural net</span> was a cacophony of alerts. Her <span class="tech-term" data-term="automedic_systems">automedic systems</span> engaged, an icy rush of <span class="tech-term" data-term="nanobots">nanobots</span> deploying <span class="tech-term" data-term="biopolymers">biopolymers</span>. The process was a frantic, desperate race.</p>
+                <p class="mb-4">"Damn it!" The words were a strangled rasp. Her legs, miraculously, responded. She stumbled, a marionette with severed strings. *Move. Now. Or die.* Her hand slapped the grip of her <span class="tech-term" data-term="grav_cycle">grav-cycle</span>. She thumbed the ignition, the <span class="tech-term" data-term="antigrav_thrusters">anti-grav thrusters</span> whining to life. Behind her, the sharp crack of the Lawman's <span class="tech-term" data-term="smart_rifle">smart-rifle</span>. "Not today, you bastards!" she snarled, pressing the <span class="tech-term" data-term="turbo_override">turbo-override nexus</span>. The grav-cycle shrieked, its acceleration kicking her back violently as she rocketed out of the city, leaving pursuit swallowed by the roaring wind and the desperate, fading beat of her own failing heart.</p>
+            </section>
+
+            <!-- Codex Section -->
+            <section id="codex" class="content-section p-6 bg-gray-800 rounded-lg">
+                <h2 class="text-2xl font-bold text-white mb-4">Technology Codex</h2>
+                <p class="mb-6 text-gray-400">An archive of known technologies. Click on any entry for details.</p>
+                <div id="codex-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- JS will populate this -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border border-indigo-500">
+            <h3 id="modal-title" class="text-xl font-bold text-white mb-3"></h3>
+            <p id="modal-description" class="text-gray-300 mb-4"></p>
+            <p id="modal-context" class="text-sm text-gray-500 italic"></p>
+            <button id="modal-close" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition-all duration-300">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const contentSections = document.querySelectorAll('.content-section');
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDescription = document.getElementById('modal-description');
+            const modalContext = document.getElementById('modal-context');
+            const modalClose = document.getElementById('modal-close');
+            const codexGrid = document.getElementById('codex-grid');
+
+            const techTermsData = {
+                initiation_signal: { title: "Initiation Signal", description: "An encrypted, quantum-entangled signal that activates a weapon system remotely, ensuring it remains dormant until the moment of firing.", context: "Used by the Progenitor (Lawman) to activate Intellect-9." },
+                chassis_matrix: { title: "Chassis-Matrix", description: "The foundational structure of an advanced nanoweapon, composed of hyper-dense, interlaced alloys capable of withstanding extreme launch pressures.", context: "Forms the body of Intellect-9." },
+                concussive_pop: { title: "Concussive Pop", description: "The sound generated by the electromagnetic launch of a projectile, distinct from traditional chemical propellants.", context: "The sound of Intellect-9 being fired from the smart-rifle." },
+                plasma_light: { title: "Plasma-Light", description: "Intense light emitted from the brief but powerful plasma discharge that propels a projectile in a railgun or coilgun system.", context: "Visual effect of the smart-rifle firing." },
+                thermal_discharge: { title: "Thermal Discharge", description: "A wave of immense heat released during the firing process of energy-based weaponry.", context: "Part of the smart-rifle's firing signature." },
+                acoustic_shockwave: { title: "Acoustic Shockwave", description: "A powerful soundwave capable of disorienting nearby personnel, generated by high-energy weapon discharges.", context: "Part of the smart-rifle's firing signature." },
+                bio_neural_processors: { title: "Bio-Neural Processors", description: "Organic-synthetic hybrid processors that allow for intuitive, learning-based decision making in AI, far exceeding traditional silicon limitations.", context: "The 'brain' of Intellect-9." },
+                picosecond_resolution: { title: "Picosecond Resolution", description: "The ability of a system to process information and react in timeframes measured in trillionths of a second.", context: "The processing speed of Intellect-9." },
+                nanofiber_lining: { title: "Nanofiber Lining", description: "A smooth, friction-reducing material lining a launch tube to maximize projectile velocity and minimize barrel wear.", context: "Internal component of the smart-rifle." },
+                aerodynamic_shell: { title: "Aerodynamic Shell", description: "The outer casing of a projectile, designed for optimal stability and minimal drag at hypersonic speeds.", context: "The outer body of Intellect-9." },
+                grav_sensors: { title: "Grav-Sensors", description: "Advanced sensors that detect minute fluctuations in local gravity fields, used for stabilization and trajectory analysis.", context: "A key navigational component for Intellect-9." },
+                ion_pulse_thrusters: { title: "Ion-Pulse Thrusters", description: "Miniaturized ion engines that emit small, precise pulses of charged particles for fine-tuned trajectory adjustments in flight.", context: "Used by Intellect-9 for micro-adjustments." },
+                plasma_energy: { title: "Plasma Energy", description: "A state of superheated, ionized gas contained within magnetic fields, used as a power source for advanced micro-reactors.", context: "Powers Intellect-9's systems." },
+                adaptive_optical_aperture: { title: "Adaptive Optical Aperture", description: "A smart lens system that can change its focal properties instantaneously to track targets and penetrate sensor-jamming effects.", context: "The 'eye' of Intellect-9." },
+                super_pressurized_atmosphere: { title: "Super-Pressurized Atmosphere", description: "A method of projectile launch that uses a sudden release of highly compressed gas for initial acceleration before main engines ignite.", context: "The launch method for Intellect-9." },
+                fusion_core_engines: { title: "Fusion-Core Engines", description: "Miniature fusion reactors that provide immense thrust for projectiles, enabling hypersonic speeds.", context: "Intellect-9's primary propulsion." },
+                vector_thrust: { title: "Vector-Thrust", description: "The ability to direct the thrust of an engine in multiple directions, allowing for advanced maneuverability.", context: "How Intellect-9 corrects its course." },
+                neural_net: { title: "Neural Net", description: "A complex network of interconnected processors (biological or synthetic) that mimics a brain, enabling learning, pattern recognition, and complex problem-solving.", context: "Present in both Intellect-9 (synthetic) and Cherry (biological/cybernetic)." },
+                keening_frequency: { title: "Keening Frequency", description: "A high-pitched signal characteristic of active electronic warfare systems designed to disrupt targeting sensors.", context: "The sound of Cherry's E-WAR defense." },
+                ewar_defenses: { title: "E-WAR Defenses", description: "Electronic Warfare systems designed to jam, disrupt, or deceive incoming smart munitions and targeting systems.", context: "Cherry's primary countermeasure." },
+                adaptive_algorithms: { title: "Adaptive Algorithms", description: "Software that can modify its own parameters in response to changing data, allowing it to overcome unforeseen obstacles like E-WAR.", context: "Used by Intellect-9 to filter jamming." },
+                hypersonic_velocity: { title: "Hypersonic Velocity", description: "Speeds in excess of Mach 5 (five times the speed of sound).", context: "Intellect-9's terminal velocity." },
+                intellect_variants: { title: "Intellect-Variants", description: "Other smart rounds from the same manufacturing batch, sharing a networked intelligence and mission parameters.", context: "The 'siblings' of Intellect-9." },
+                reactive_plate: { title: "Reactive Plate", description: "A type of armor that contains an explosive layer, which detonates outwards upon impact to counteract the force of a projectile.", context: "Cherry's first layer of chest protection." },
+                sub_dermal_suit: { title: "Sub-Dermal Combat Suit", description: "A thin, highly durable body suit worn under armor, often integrated with bio-monitors and other systems.", context: "Cherry's secondary layer of protection." },
+                hypovolemic_shock: { title: "Hypovolemic Shock", description: "A life-threatening condition that results from severe blood and fluid loss, causing the heart to be unable to pump enough blood to the body.", context: "Cherry's medical condition after impact." },
+                bio_monitors: { title: "Integrated Bio-Monitors", description: "A network of internal sensors that track vital signs, tissue damage, and system statuses, feeding data directly to a user's neural net.", context: "Cherry's internal diagnostic system." },
+                automedic_systems: { title: "Automedic Systems", description: "An automated medical suite, typically using nanobots, that can perform emergency treatment such as sealing wounds and administering medication.", context: "Cherry's internal life-support." },
+                nanobots: { title: "Nanobots", description: "Microscopic robots designed to perform tasks on a cellular level, such as repairing tissue or fighting pathogens.", context: "The active component of Cherry's automedic system." },
+                biopolymers: { title: "Biopolymers", description: "A synthetic, biocompatible substance used by nanobots to rapidly create clots and seal wounds, preventing catastrophic blood loss.", context: "The 'medical glue' used by Cherry's nanobots." },
+                grav_cycle: { title: "Grav-Cycle", description: "A personal transport vehicle that uses anti-gravity technology for levitation and propulsion.", context: "Cherry's escape vehicle." },
+                antigrav_thrusters: { title: "Anti-Grav Thrusters", description: "Devices that generate a localized anti-gravity field, allowing a vehicle to hover and move without direct contact with the ground.", context: "Propulsion for the grav-cycle." },
+                smart_rifle: { title: "Smart-Rifle", description: "A rifle platform capable of firing 'intellect' rounds, providing targeting data and launch commands to the projectile.", context: "The Lawman's weapon." },
+                turbo_override: { title: "Turbo-Override Nexus", description: "A system on a vehicle that shunts all available power to the main thrusters for a short, extreme burst of speed, often bypassing safety limiters.", context: "Used by Cherry for a quick escape." },
+            };
+
+            function showModal(termKey) {
+                const term = techTermsData[termKey];
+                if (term) {
+                    modalTitle.textContent = term.title;
+                    modalDescription.textContent = term.description;
+                    modalContext.textContent = term.context;
+                    modal.classList.remove('hidden');
+                }
+            }
+
+            modalClose.addEventListener('click', () => modal.classList.add('hidden'));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.add('hidden');
+            });
+            
+            document.querySelectorAll('.tech-term').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const termKey = e.target.dataset.term;
+                    showModal(termKey);
+                });
+            });
+
+            function populateCodex() {
+                const sortedKeys = Object.keys(techTermsData).sort((a,b) => techTermsData[a].title.localeCompare(techTermsData[b].title));
+                sortedKeys.forEach(key => {
+                    const term = techTermsData[key];
+                    const codexEntry = document.createElement('div');
+                    codexEntry.className = 'p-3 bg-gray-700 rounded-md cursor-pointer hover:bg-indigo-600 transition-colors duration-200';
+                    codexEntry.textContent = term.title;
+                    codexEntry.dataset.term = key;
+                    codexEntry.addEventListener('click', () => showModal(key));
+                    codexGrid.appendChild(codexEntry);
+                });
+            }
+
+            const bioMonitorContainer = document.getElementById('bio-monitor');
+            const bioStats = {
+                'Vitals': { value: 95, color: 'bg-green-500' },
+                'Blood Pressure': { value: 92, color: 'bg-green-500' },
+                'Tissue Integrity': { value: 100, color: 'bg-green-500' },
+                'Automedic Power': { value: 100, color: 'bg-blue-500' }
+            };
+
+            function updateBioMonitor() {
+                bioMonitorContainer.innerHTML = '';
+                for (const stat in bioStats) {
+                    const data = bioStats[stat];
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'mb-3';
+                    
+                    const label = document.createElement('div');
+                    label.className = 'text-sm font-semibold text-gray-300 mb-1';
+                    label.textContent = stat;
+
+                    const barContainer = document.createElement('div');
+                    barContainer.className = 'bio-chart-container';
+                    
+                    const bar = document.createElement('div');
+                    bar.className = `bio-bar ${data.color}`;
+                    bar.style.width = `${data.value}%`;
+
+                    barContainer.appendChild(bar);
+                    wrapper.appendChild(label);
+                    wrapper.appendChild(barContainer);
+                    bioMonitorContainer.appendChild(wrapper);
+                }
+            }
+            
+            function simulateDamage() {
+                setTimeout(() => {
+                    bioStats['Vitals'] = { value: 45, color: 'bg-red-500' };
+                    bioStats['Blood Pressure'] = { value: 30, color: 'bg-red-500' };
+                    bioStats['Tissue Integrity'] = { value: 25, color: 'bg-red-500' };
+                    updateBioMonitor();
+                    document.getElementById('damage-pulmonary').classList.remove('opacity-0');
+                    document.getElementById('damage-hepatic').classList.remove('opacity-0');
+                    document.getElementById('label-pulmonary').classList.remove('opacity-0');
+                    document.getElementById('label-hepatic').classList.remove('opacity-0');
+                }, 1000);
+
+                setTimeout(() => {
+                    bioStats['Automedic Power'].value = 70;
+                    bioStats['Tissue Integrity'] = { value: 35, color: 'bg-yellow-500' };
+                    updateBioMonitor();
+                }, 2500);
+            }
+
+            const charts = {};
+            function createTimelineChart() {
+                if (charts.timeline) charts.timeline.destroy();
+                const ctx = document.getElementById('eventTimelineChart').getContext('2d');
+                charts.timeline = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Ignition', 'Launch', 'Course Correction', 'E-WAR Encounter', 'Final Burn', 'Impact'],
+                        datasets: [{
+                            label: 'Intellect-9 Velocity',
+                            data: [0, 50, 55, 70, 100, 0],
+                            borderColor: '#818cf8',
+                            backgroundColor: 'rgba(129, 140, 248, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#6366f1',
+                        },
+                        {
+                            label: 'Cherry Bio-Integrity',
+                            data: [100, 100, 100, 100, 100, 25],
+                             borderColor: '#f87171',
+                            backgroundColor: 'rgba(248, 113, 113, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#ef4444',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#d1d5db' } }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#9ca3af' },
+                                grid: { color: '#374151' }
+                            },
+                            x: {
+                                ticks: { color: '#9ca3af' },
+                                grid: { color: '#374151' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function setActiveNav(targetId) {
+                navButtons.forEach(btn => {
+                    if (btn.dataset.target === targetId) {
+                        btn.classList.add('nav-active');
+                        btn.classList.remove('nav-inactive');
+                    } else {
+                        btn.classList.add('nav-inactive');
+                        btn.classList.remove('nav-active');
+                    }
+                });
+
+                contentSections.forEach(section => {
+                    if (section.id === targetId) {
+                        section.classList.add('content-active');
+                    } else {
+                        section.classList.remove('content-active');
+                    }
+                });
+
+                if (targetId === 'target') {
+                    updateBioMonitor();
+                    simulateDamage();
+                }
+
+                if(targetId === 'overview') {
+                    createTimelineChart();
+                }
+            }
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    setActiveNav(button.dataset.target);
+                });
+            });
+
+            populateCodex();
+            setActiveNav('overview');
+        });
+    </script>
+</body>
+</html>
